@@ -38,8 +38,7 @@
         .control-item input { padding: 10px; border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; width: 100%; outline: none; transition: 0.2s; }
         .control-item input:focus { border-color: var(--primary); }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 
         /* --- NAVIGATION --- */
         .nav-container { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
@@ -57,7 +56,7 @@
         #globalSearch { flex: 1; background: transparent; border: none; font-size: 1rem; outline: none; }
 
         /* --- DATA DISPLAY --- */
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
         .participant-card { background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 20px; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
         .participant-card:hover { border-color: var(--primary); transform: translateY(-2px); }
         .p-info { flex-grow: 1; }
@@ -70,7 +69,7 @@
         /* --- PRINT SETTINGS --- */
         #bulk-container { display: none; }
         .cert-page { position: relative; width: 11in; height: 8.5in; background: white; page-break-after: always; overflow: hidden; background-size: cover; background-position: center; }
-        .print-text { position: absolute; color: #000; transform: translate(-50%, -50%); text-align: center; width: 90%; }
+        .print-text { position: absolute; color: #000; transform: translate(-50%, -50%); text-align: center; width: 90%; line-height: 1; }
 
         @media print {
             body { padding: 0; background: white !important; }
@@ -159,7 +158,7 @@
         };
 
         window.onload = () => {
-            const saved = JSON.parse(localStorage.getItem('iTechTerminalV6'));
+            const saved = JSON.parse(localStorage.getItem('iTechTerminalV7'));
             if (saved) {
                 Object.keys(saved).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = saved[key]; });
                 certImage = saved.certImage || '';
@@ -179,8 +178,6 @@
             container.innerHTML = schedule[batch].map(ws => 
                 `<button class="ws-pill ${ws === 'All' ? 'active' : ''}" onclick="filterWS('${ws}', this)">${ws.toUpperCase()}</button>`
             ).join('');
-            
-            document.getElementById('syncBtn').innerText = `🔄 Sync ${batch.toUpperCase()}`;
             render();
         }
 
@@ -197,33 +194,51 @@
             if (!targetUrl) return;
 
             btn.innerText = "⌛ Syncing...";
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-
+            
             try {
-                const response = await fetch(proxyUrl);
-                if (!response.ok) throw new Error('Failed');
+                // Try direct fetch first with cache busting
+                const response = await fetch(`${targetUrl}&t=${Date.now()}`);
+                if (!response.ok) throw new Error('Direct failed');
                 const csvData = await response.text();
-                const rows = csvData.split(/\r?\n/).filter(r => r.trim() !== "");
-                const dataRows = rows.slice(1);
-                
-                const newData = dataRows.map((row, index) => {
-                    const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                    if (cols && cols.length > 0) {
-                        return {
-                            id: currentBatch + "_" + index,
-                            name: (cols[0] || "Unknown").replace(/"/g, '').trim().toUpperCase(),
-                            batch: currentBatch,
-                            workshop: (cols[9] || "Workshop").replace(/"/g, '').trim()
-                        };
-                    }
-                    return null;
-                }).filter(p => p !== null && p.name !== "" && p.name !== "FULL NAME");
+                processData(csvData);
+                btn.innerText = "✅ Success";
+            } catch (err) {
+                console.warn("Direct fetch blocked, trying proxy...");
+                try {
+                    // Fallback to AllOrigins with cache busting
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl + '&t=' + Date.now())}`;
+                    const res = await fetch(proxyUrl);
+                    const json = await res.json();
+                    processData(json.contents);
+                    btn.innerText = "✅ Success (via Proxy)";
+                } catch (proxyErr) {
+                    btn.innerText = "❌ Sync Failed";
+                    alert("Connection Error: Please check if your sheet is published as CSV.");
+                }
+            }
+            setTimeout(() => btn.innerText = `🔄 Sync ${currentBatch.toUpperCase()}`, 2000);
+        }
 
-                participants = participants.filter(p => p.batch !== currentBatch).concat(newData);
-                render();
-                btn.innerText = "✅ Done";
-                setTimeout(() => btn.innerText = `🔄 Sync ${currentBatch.toUpperCase()}`, 2000);
-            } catch (err) { btn.innerText = "❌ Failed"; }
+        function processData(csvData) {
+            const rows = csvData.split(/\r?\n/).filter(r => r.trim() !== "");
+            const dataRows = rows.slice(1);
+            
+            const newData = dataRows.map((row, index) => {
+                // REGEX FIX: Properly handles names with commas like "Dela Cruz, Juan"
+                const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                if (cols && cols.length > 0) {
+                    return {
+                        id: currentBatch + "_" + index,
+                        name: cols[0].replace(/"/g, '').trim().toUpperCase(),
+                        batch: currentBatch,
+                        workshop: (cols[9] || "Workshop").replace(/"/g, '').trim()
+                    };
+                }
+                return null;
+            }).filter(p => p !== null && p.name !== "" && p.name !== "FULL NAME");
+
+            participants = participants.filter(p => p.batch !== currentBatch).concat(newData);
+            render();
         }
 
         function render() {
@@ -258,7 +273,7 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     certImage = e.target.result;
-                    document.getElementById('uploadLabel').innerText = "✅ Template Ready";
+                    document.getElementById('uploadLabel').innerText = "✅ Template Loaded";
                     saveConfig();
                 };
                 reader.readAsDataURL(input.files[0]);
@@ -275,7 +290,7 @@
                 wsSize: document.getElementById('wsSize').value,
                 certImage: certImage
             };
-            localStorage.setItem('iTechTerminalV6', JSON.stringify(config));
+            localStorage.setItem('iTechTerminalV7', JSON.stringify(config));
         }
 
         function printCert(name, ws) { prepareBulk([{name, workshop: ws}]); setTimeout(() => window.print(), 100); }
@@ -288,7 +303,7 @@
         }
 
         function prepareBulk(list) {
-            const c = JSON.parse(localStorage.getItem('iTechTerminalV6'));
+            const c = JSON.parse(localStorage.getItem('iTechTerminalV7'));
             document.getElementById('bulk-container').innerHTML = list.map(p => `
                 <div class="cert-page" style="background-image: url('${certImage}')">
                     <div class="print-text" style="top:${c.nameTop}%; left:${c.nameLeft}%; font-size:${c.nameSize}px; font-weight:800;">${p.name}</div>
