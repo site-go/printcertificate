@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iTECHLAB | Summer Workshop Terminal v6</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <title>iTECHLAB | Summer Workshop Terminal v7</title>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #6366f1;
@@ -24,21 +24,13 @@
         .layout-wrapper { max-width: 1600px; margin: 0 auto; display: grid; grid-template-columns: 380px 1fr; gap: 25px; }
 
         /* --- SIDEBAR PANEL --- */
-        .white-panel {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            margin-bottom: 20px;
-        }
+        .white-panel { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 20px; }
         .panel-header { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
         .control-item { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
         .control-item label { font-size: 0.55rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; }
-        .control-item input { padding: 10px; border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; width: 100%; outline: none; transition: 0.2s; }
-        .control-item input:focus { border-color: var(--primary); }
+        .control-item input { padding: 10px; border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; width: 100%; outline: none; }
 
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
         /* --- NAVIGATION --- */
         .nav-container { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
@@ -56,7 +48,8 @@
         #globalSearch { flex: 1; background: transparent; border: none; font-size: 1rem; outline: none; }
 
         /* --- DATA DISPLAY --- */
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .bulk-header { padding: 0 10px 10px 10px; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); }
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
         .participant-card { background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 20px; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
         .participant-card:hover { border-color: var(--primary); transform: translateY(-2px); }
         .p-info { flex-grow: 1; }
@@ -66,16 +59,35 @@
         .btn-action { padding: 12px 24px; border-radius: 50px; border: none; cursor: pointer; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; transition: 0.2s; }
         .btn-print-sm { background: var(--success); color: white; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
 
-        /* --- PRINT SETTINGS --- */
+        /* --- 📄 PRINT SETTINGS (215.9 x 279.4 mm BORDERLESS) --- */
         #bulk-container { display: none; }
-        .cert-page { position: relative; width: 11in; height: 8.5in; background: white; page-break-after: always; overflow: hidden; background-size: cover; background-position: center; }
-        .print-text { position: absolute; color: #000; transform: translate(-50%, -50%); text-align: center; width: 90%; line-height: 1; }
+        .cert-page { 
+            position: relative; 
+            width: 279.4mm; 
+            height: 215.9mm; 
+            background: white; 
+            page-break-after: always; 
+            overflow: hidden; 
+            background-size: 100% 100%; 
+            background-position: center; 
+        }
+
+        .print-text { 
+            position: absolute; 
+            color: #000; 
+            transform: translate(-50%, -50%); 
+            text-align: center; 
+            width: 95%; 
+            white-space: nowrap;
+            /* Font setting for printed names */
+            font-family: 'Libre Baskerville', serif;
+        }
 
         @media print {
-            body { padding: 0; background: white !important; }
+            body { padding: 0; margin: 0; background: white !important; }
             .layout-wrapper { display: none !important; }
             #bulk-container { display: block !important; }
-            @page { size: letter landscape; margin: 0; }
+            @page { size: 279.4mm 215.9mm; margin: 0; }
         }
 
         .upload-zone { border: 2px dashed var(--border); padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; margin-bottom: 15px; font-size: 0.7rem; font-weight: 700; color: var(--text-dim); }
@@ -94,7 +106,7 @@
             </div>
 
             <div class="white-panel">
-                <div class="panel-header"><span>🎯 Participant Name Layer</span></div>
+                <div class="panel-header"><span>🎯 Participant Name (Libre Baskerville)</span></div>
                 <div class="grid-3">
                     <div class="control-item"><label>Top %</label><input type="number" id="nameTop" value="48" oninput="saveConfig()"></div>
                     <div class="control-item"><label>Left %</label><input type="number" id="nameLeft" value="50" oninput="saveConfig()"></div>
@@ -103,7 +115,7 @@
             </div>
 
             <div class="white-panel">
-                <div class="panel-header"><span>🏷️ Category (Workshop) Layer</span></div>
+                <div class="panel-header"><span>🏷️ Category Layer</span></div>
                 <div class="grid-3">
                     <div class="control-item"><label>Top %</label><input type="number" id="wsTop" value="82" oninput="saveConfig()"></div>
                     <div class="control-item"><label>Left %</label><input type="number" id="wsLeft" value="50" oninput="saveConfig()"></div>
@@ -132,6 +144,11 @@
                 <div class="workshop-tabs" id="wsPillsContainer"></div>
             </div>
 
+            <div class="bulk-header">
+                <input type="checkbox" id="selectAll" onclick="toggleAll()" style="width:18px; height:18px; cursor:pointer;">
+                <label for="selectAll" style="cursor:pointer;">Select All in this Workshop</label>
+            </div>
+
             <div id="listContainer" class="data-grid"></div>
         </div>
     </div>
@@ -158,7 +175,7 @@
         };
 
         window.onload = () => {
-            const saved = JSON.parse(localStorage.getItem('iTechTerminalV7'));
+            const saved = JSON.parse(localStorage.getItem('iTechTerminalV8'));
             if (saved) {
                 Object.keys(saved).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = saved[key]; });
                 certImage = saved.certImage || '';
@@ -171,6 +188,7 @@
         function filterBatch(batch, btn) {
             currentBatch = batch;
             currentWS = 'All';
+            selectedIndices.clear();
             document.querySelectorAll('.batch-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
@@ -183,6 +201,8 @@
 
         function filterWS(ws, btn) {
             currentWS = ws;
+            selectedIndices.clear();
+            document.getElementById('selectAll').checked = false;
             document.querySelectorAll('.ws-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             render();
@@ -192,52 +212,41 @@
             const targetUrl = BATCH_URLS[currentBatch];
             const btn = document.getElementById('syncBtn');
             if (!targetUrl) return;
-
             btn.innerText = "⌛ Syncing...";
-            
             try {
-                // Try direct fetch first with cache busting
                 const response = await fetch(`${targetUrl}&t=${Date.now()}`);
-                if (!response.ok) throw new Error('Direct failed');
                 const csvData = await response.text();
-                processData(csvData);
-                btn.innerText = "✅ Success";
-            } catch (err) {
-                console.warn("Direct fetch blocked, trying proxy...");
-                try {
-                    // Fallback to AllOrigins with cache busting
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl + '&t=' + Date.now())}`;
-                    const res = await fetch(proxyUrl);
-                    const json = await res.json();
-                    processData(json.contents);
-                    btn.innerText = "✅ Success (via Proxy)";
-                } catch (proxyErr) {
-                    btn.innerText = "❌ Sync Failed";
-                    alert("Connection Error: Please check if your sheet is published as CSV.");
-                }
-            }
-            setTimeout(() => btn.innerText = `🔄 Sync ${currentBatch.toUpperCase()}`, 2000);
+                const rows = csvData.split(/\r?\n/).filter(r => r.trim() !== "");
+                const dataRows = rows.slice(1);
+                
+                const newData = dataRows.map((row, index) => {
+                    const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    if (cols && cols.length > 0) {
+                        return {
+                            id: currentBatch + "_" + index,
+                            name: cols[0].replace(/"/g, '').trim().toUpperCase(),
+                            batch: currentBatch,
+                            workshop: (cols[9] || "Workshop").replace(/"/g, '').trim()
+                        };
+                    }
+                    return null;
+                }).filter(p => p !== null && p.name !== "" && p.name !== "FULL NAME");
+
+                participants = participants.filter(p => p.batch !== currentBatch).concat(newData);
+                render();
+                btn.innerText = "✅ Sync Done";
+            } catch (err) { btn.innerText = "❌ Failed"; }
         }
 
-        function processData(csvData) {
-            const rows = csvData.split(/\r?\n/).filter(r => r.trim() !== "");
-            const dataRows = rows.slice(1);
+        function toggleAll() {
+            const q = document.getElementById('globalSearch').value.toUpperCase();
+            const filtered = participants.filter(p => p.name.includes(q) && p.batch === currentBatch && (currentWS === 'All' || p.workshop === currentWS));
             
-            const newData = dataRows.map((row, index) => {
-                // REGEX FIX: Properly handles names with commas like "Dela Cruz, Juan"
-                const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                if (cols && cols.length > 0) {
-                    return {
-                        id: currentBatch + "_" + index,
-                        name: cols[0].replace(/"/g, '').trim().toUpperCase(),
-                        batch: currentBatch,
-                        workshop: (cols[9] || "Workshop").replace(/"/g, '').trim()
-                    };
-                }
-                return null;
-            }).filter(p => p !== null && p.name !== "" && p.name !== "FULL NAME");
-
-            participants = participants.filter(p => p.batch !== currentBatch).concat(newData);
+            if (document.getElementById('selectAll').checked) {
+                filtered.forEach(p => selectedIndices.add(p.id));
+            } else {
+                filtered.forEach(p => selectedIndices.delete(p.id));
+            }
             render();
         }
 
@@ -273,7 +282,7 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     certImage = e.target.result;
-                    document.getElementById('uploadLabel').innerText = "✅ Template Loaded";
+                    document.getElementById('uploadLabel').innerText = "✅ Template Ready";
                     saveConfig();
                 };
                 reader.readAsDataURL(input.files[0]);
@@ -290,7 +299,7 @@
                 wsSize: document.getElementById('wsSize').value,
                 certImage: certImage
             };
-            localStorage.setItem('iTechTerminalV7', JSON.stringify(config));
+            localStorage.setItem('iTechTerminalV8', JSON.stringify(config));
         }
 
         function printCert(name, ws) { prepareBulk([{name, workshop: ws}]); setTimeout(() => window.print(), 100); }
@@ -303,10 +312,10 @@
         }
 
         function prepareBulk(list) {
-            const c = JSON.parse(localStorage.getItem('iTechTerminalV7'));
+            const c = JSON.parse(localStorage.getItem('iTechTerminalV8'));
             document.getElementById('bulk-container').innerHTML = list.map(p => `
                 <div class="cert-page" style="background-image: url('${certImage}')">
-                    <div class="print-text" style="top:${c.nameTop}%; left:${c.nameLeft}%; font-size:${c.nameSize}px; font-weight:800;">${p.name}</div>
+                    <div class="print-text" style="top:${c.nameTop}%; left:${c.nameLeft}%; font-size:${c.nameSize}px; font-weight:700; font-family:'Libre Baskerville', serif;">${p.name}</div>
                     <div class="print-text" style="top:${c.wsTop}%; left:${c.wsLeft}%; font-size:${c.wsSize}px; font-weight:700;">${p.workshop} WORKSHOP</div>
                 </div>
             `).join('');
