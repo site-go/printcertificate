@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iTECHLAB | Summer Workshop Terminal v7</title>
+    <title>iTECHLAB | Arduino Education Day Terminal</title>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #6366f1;
-            --primary-light: #eef2ff;
-            --success: #10b981;
-            --danger: #ef4444;
             --bg: #f8fafc; 
             --card: #ffffff;
             --text-main: #1e293b;
@@ -29,7 +26,6 @@
         .control-item { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
         .control-item label { font-size: 0.55rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; }
         .control-item input { padding: 10px; border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; width: 100%; outline: none; }
-
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
         /* --- NAVIGATION --- */
@@ -42,34 +38,29 @@
         .ws-pill { padding: 10px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 50px; color: var(--text-dim); font-size: 0.7rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: 0.2s; }
         .ws-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* --- SEARCH & ACTIONS --- */
+        /* --- DATA GRID --- */
         .search-row { display: flex; gap: 15px; align-items: center; margin-bottom: 20px; }
         .search-bar { flex: 1; background: var(--card); border: 1px solid var(--border); padding: 14px 24px; border-radius: 50px; display: flex; align-items: center; }
         #globalSearch { flex: 1; background: transparent; border: none; font-size: 1rem; outline: none; }
-
-        /* --- DATA DISPLAY --- */
-        .bulk-header { padding: 0 10px 10px 10px; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); }
+        .bulk-header { padding: 10px; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); }
         .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
         .participant-card { background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 20px; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
-        .participant-card:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .p-info { flex-grow: 1; }
-        .p-info h4 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-        .p-info p { font-size: 0.65rem; color: var(--primary); font-weight: 800; }
+        .p-info h4 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; }
+        .btn-action { padding: 12px 24px; border-radius: 50px; border: none; cursor: pointer; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; }
 
-        .btn-action { padding: 12px 24px; border-radius: 50px; border: none; cursor: pointer; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; transition: 0.2s; }
-        .btn-print-sm { background: var(--success); color: white; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
-
-        /* --- 📄 PRINT SETTINGS (215.9 x 279.4 mm BORDERLESS) --- */
+        /* --- 📄 BORDERLESS PRINT SETTINGS --- */
         #bulk-container { display: none; }
+        
         .cert-page { 
             position: relative; 
-            width: 279.4mm; 
-            height: 215.9mm; 
+            width: 279.4mm;  /* Exact US Letter Width */
+            height: 215.9mm; /* Exact US Letter Height */
             background: white; 
             page-break-after: always; 
             overflow: hidden; 
-            background-size: 100% 100%; 
+            background-size: 100% 100%; /* Force background to fill edges */
             background-position: center; 
+            background-repeat: no-repeat;
         }
 
         .print-text { 
@@ -79,15 +70,16 @@
             text-align: center; 
             width: 95%; 
             white-space: nowrap;
-            /* Font setting for printed names */
-            font-family: 'Libre Baskerville', serif;
         }
 
         @media print {
             body { padding: 0; margin: 0; background: white !important; }
             .layout-wrapper { display: none !important; }
             #bulk-container { display: block !important; }
-            @page { size: 279.4mm 215.9mm; margin: 0; }
+            @page { 
+                size: 279.4mm 215.9mm; 
+                margin: 0; /* REMOVES WHITE MARGINS */
+            }
         }
 
         .upload-zone { border: 2px dashed var(--border); padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; margin-bottom: 15px; font-size: 0.7rem; font-weight: 700; color: var(--text-dim); }
@@ -100,7 +92,7 @@
             <div class="white-panel">
                 <div class="panel-header"><span>🖼️ Template Manager</span></div>
                 <div class="upload-zone" onclick="document.getElementById('bgUpload').click()">
-                    <span id="uploadLabel">📁 Upload Certificate Background</span>
+                    <span id="uploadLabel">📁 Upload Borderless PNG</span>
                     <input type="file" id="bgUpload" hidden accept="image/*" onchange="handleBgUpload(this)">
                 </div>
             </div>
@@ -108,31 +100,29 @@
             <div class="white-panel">
                 <div class="panel-header"><span>🎯 Participant Name (Libre Baskerville)</span></div>
                 <div class="grid-3">
-                    <div class="control-item"><label>Top %</label><input type="number" id="nameTop" value="48" oninput="saveConfig()"></div>
+                    <div class="control-item"><label>Top %</label><input type="number" id="nameTop" value="40" oninput="saveConfig()"></div>
                     <div class="control-item"><label>Left %</label><input type="number" id="nameLeft" value="50" oninput="saveConfig()"></div>
-                    <div class="control-item"><label>Size px</label><input type="number" id="nameSize" value="70" oninput="saveConfig()"></div>
+                    <div class="control-item"><label>Size px</label><input type="number" id="nameSize" value="65" oninput="saveConfig()"></div>
                 </div>
             </div>
 
             <div class="white-panel">
-                <div class="panel-header"><span>🏷️ Category Layer</span></div>
+                <div class="panel-header"><span>🏷️ Event Title Layer</span></div>
                 <div class="grid-3">
-                    <div class="control-item"><label>Top %</label><input type="number" id="wsTop" value="82" oninput="saveConfig()"></div>
+                    <div class="control-item"><label>Top %</label><input type="number" id="wsTop" value="52" oninput="saveConfig()"></div>
                     <div class="control-item"><label>Left %</label><input type="number" id="wsLeft" value="50" oninput="saveConfig()"></div>
-                    <div class="control-item"><label>Size px</label><input type="number" id="wsSize" value="25" oninput="saveConfig()"></div>
+                    <div class="control-item"><label>Size px</label><input type="number" id="wsSize" value="22" oninput="saveConfig()"></div>
                 </div>
             </div>
             
-            <button class="btn-action" style="background:#f1f5f9; color:#64748b; width:100%" onclick="localStorage.clear(); location.reload();">Reset Terminal</button>
+            <button class="btn-action" style="background:#f1f5f9; color:#64748b; width:100%" onclick="localStorage.clear(); location.reload();">Reset Alignment</button>
         </div>
 
         <div class="main-view">
             <div class="search-row">
-                <div class="search-bar">
-                    <input type="text" id="globalSearch" placeholder="Search participant..." onkeyup="render()">
-                </div>
+                <div class="search-bar"><input type="text" id="globalSearch" placeholder="Search name..." onkeyup="render()"></div>
                 <button class="btn-action" style="background:#1e293b; color:white;" onclick="fetchLiveData()" id="syncBtn">🔄 Sync Batch</button>
-                <button class="btn-action" style="background:#4f46e5; color:white;" onclick="printSelected()" id="printSelectedBtn">✅ Print (0)</button>
+                <button class="btn-action" style="background:#4f46e5; color:white;" onclick="printSelected()" id="printSelectedBtn">✅ Print Selected (0)</button>
             </div>
 
             <div class="nav-container">
@@ -145,8 +135,8 @@
             </div>
 
             <div class="bulk-header">
-                <input type="checkbox" id="selectAll" onclick="toggleAll()" style="width:18px; height:18px; cursor:pointer;">
-                <label for="selectAll" style="cursor:pointer;">Select All in this Workshop</label>
+                <input type="checkbox" id="selectAll" onclick="toggleAll()">
+                <label for="selectAll">Select All for Bulk Print</label>
             </div>
 
             <div id="listContainer" class="data-grid"></div>
@@ -175,34 +165,26 @@
         };
 
         window.onload = () => {
-            const saved = JSON.parse(localStorage.getItem('iTechTerminalV8'));
+            const saved = JSON.parse(localStorage.getItem('iTechTerminalV9'));
             if (saved) {
                 Object.keys(saved).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = saved[key]; });
                 certImage = saved.certImage || '';
-                if(certImage) document.getElementById('uploadLabel').innerText = "✅ Template Ready";
+                if(certImage) document.getElementById('uploadLabel').innerText = "✅ Borderless Ready";
             }
             filterBatch('batch1', document.querySelector('.batch-pill'));
-            fetchLiveData();
         };
 
         function filterBatch(batch, btn) {
-            currentBatch = batch;
-            currentWS = 'All';
-            selectedIndices.clear();
+            currentBatch = batch; currentWS = 'All'; selectedIndices.clear();
             document.querySelectorAll('.batch-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
             const container = document.getElementById('wsPillsContainer');
-            container.innerHTML = schedule[batch].map(ws => 
-                `<button class="ws-pill ${ws === 'All' ? 'active' : ''}" onclick="filterWS('${ws}', this)">${ws.toUpperCase()}</button>`
-            ).join('');
+            container.innerHTML = schedule[batch].map(ws => `<button class="ws-pill ${ws === 'All' ? 'active' : ''}" onclick="filterWS('${ws}', this)">${ws.toUpperCase()}</button>`).join('');
             render();
         }
 
         function filterWS(ws, btn) {
-            currentWS = ws;
-            selectedIndices.clear();
-            document.getElementById('selectAll').checked = false;
+            currentWS = ws; selectedIndices.clear(); document.getElementById('selectAll').checked = false;
             document.querySelectorAll('.ws-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             render();
@@ -211,7 +193,6 @@
         async function fetchLiveData() {
             const targetUrl = BATCH_URLS[currentBatch];
             const btn = document.getElementById('syncBtn');
-            if (!targetUrl) return;
             btn.innerText = "⌛ Syncing...";
             try {
                 const response = await fetch(`${targetUrl}&t=${Date.now()}`);
@@ -219,106 +200,67 @@
                 const rows = csvData.split(/\r?\n/).filter(r => r.trim() !== "");
                 const dataRows = rows.slice(1);
                 
-                const newData = dataRows.map((row, index) => {
+                participants = participants.filter(p => p.batch !== currentBatch).concat(dataRows.map((row, index) => {
                     const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
                     if (cols && cols.length > 0) {
-                        return {
-                            id: currentBatch + "_" + index,
-                            name: cols[0].replace(/"/g, '').trim().toUpperCase(),
-                            batch: currentBatch,
-                            workshop: (cols[9] || "Workshop").replace(/"/g, '').trim()
-                        };
+                        return { id: currentBatch + "_" + index, name: cols[0].replace(/"/g, '').trim().toUpperCase(), batch: currentBatch, workshop: (cols[9] || "Workshop").replace(/"/g, '').trim() };
                     }
                     return null;
-                }).filter(p => p !== null && p.name !== "" && p.name !== "FULL NAME");
-
-                participants = participants.filter(p => p.batch !== currentBatch).concat(newData);
-                render();
-                btn.innerText = "✅ Sync Done";
-            } catch (err) { btn.innerText = "❌ Failed"; }
+                }).filter(p => p !== null && p.name !== "FULL NAME"));
+                render(); btn.innerText = "✅ Done";
+            } catch (err) { btn.innerText = "❌ Error"; }
         }
 
         function toggleAll() {
-            const q = document.getElementById('globalSearch').value.toUpperCase();
-            const filtered = participants.filter(p => p.name.includes(q) && p.batch === currentBatch && (currentWS === 'All' || p.workshop === currentWS));
-            
-            if (document.getElementById('selectAll').checked) {
-                filtered.forEach(p => selectedIndices.add(p.id));
-            } else {
-                filtered.forEach(p => selectedIndices.delete(p.id));
-            }
+            const filtered = participants.filter(p => p.batch === currentBatch && (currentWS === 'All' || p.workshop === currentWS));
+            document.getElementById('selectAll').checked ? filtered.forEach(p => selectedIndices.add(p.id)) : selectedIndices.clear();
             render();
         }
 
         function render() {
             const q = document.getElementById('globalSearch').value.toUpperCase();
-            const container = document.getElementById('listContainer');
             const filtered = participants.filter(p => p.name.includes(q) && p.batch === currentBatch && (currentWS === 'All' || p.workshop === currentWS));
-
-            container.innerHTML = filtered.map(p => `
+            document.getElementById('listContainer').innerHTML = filtered.map(p => `
                 <div class="participant-card">
-                    <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)" ${selectedIndices.has(p.id) ? 'checked' : ''} onclick="toggleSelection('${p.id}')">
-                    <div class="p-info">
-                        <h4>${p.name}</h4>
-                        <p>${p.workshop}</p>
-                    </div>
+                    <input type="checkbox" ${selectedIndices.has(p.id) ? 'checked' : ''} onclick="toggleSelection('${p.id}')">
+                    <div class="p-info"><h4>${p.name}</h4><p>${p.workshop}</p></div>
                     <button class="btn-print-sm" onclick="printCert('${p.name.replace(/'/g, "\\'")}', '${p.workshop.replace(/'/g, "\\'")}')">🖨️</button>
-                </div>
-            `).join('');
-            updateSelectionUI();
+                </div>`).join('');
+            document.getElementById('printSelectedBtn').innerText = `✅ Print Selected (${selectedIndices.size})`;
         }
 
         function toggleSelection(id) {
             selectedIndices.has(id) ? selectedIndices.delete(id) : selectedIndices.add(id);
-            updateSelectionUI();
-        }
-
-        function updateSelectionUI() {
-            document.getElementById('printSelectedBtn').innerText = `✅ Print (${selectedIndices.size})`;
+            document.getElementById('printSelectedBtn').innerText = `✅ Print Selected (${selectedIndices.size})`;
         }
 
         function handleBgUpload(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    certImage = e.target.result;
-                    document.getElementById('uploadLabel').innerText = "✅ Template Ready";
-                    saveConfig();
-                };
+                reader.onload = (e) => { certImage = e.target.result; document.getElementById('uploadLabel').innerText = "✅ Borderless Ready"; saveConfig(); };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
         function saveConfig() {
-            const config = {
-                nameTop: document.getElementById('nameTop').value,
-                nameLeft: document.getElementById('nameLeft').value,
-                nameSize: document.getElementById('nameSize').value,
-                wsTop: document.getElementById('wsTop').value,
-                wsLeft: document.getElementById('wsLeft').value,
-                wsSize: document.getElementById('wsSize').value,
-                certImage: certImage
-            };
-            localStorage.setItem('iTechTerminalV8', JSON.stringify(config));
+            const config = { nameTop: document.getElementById('nameTop').value, nameLeft: document.getElementById('nameLeft').value, nameSize: document.getElementById('nameSize').value, wsTop: document.getElementById('wsTop').value, wsLeft: document.getElementById('wsLeft').value, wsSize: document.getElementById('wsSize').value, certImage: certImage };
+            localStorage.setItem('iTechTerminalV9', JSON.stringify(config));
         }
 
         function printCert(name, ws) { prepareBulk([{name, workshop: ws}]); setTimeout(() => window.print(), 100); }
-
         function printSelected() {
             const list = participants.filter(p => selectedIndices.has(p.id));
-            if (!list.length) return alert("Select participants first.");
-            prepareBulk(list);
-            setTimeout(() => window.print(), 100);
+            if (!list.length) return alert("No selection!");
+            prepareBulk(list); setTimeout(() => window.print(), 100);
         }
 
         function prepareBulk(list) {
-            const c = JSON.parse(localStorage.getItem('iTechTerminalV8'));
+            const c = JSON.parse(localStorage.getItem('iTechTerminalV9'));
             document.getElementById('bulk-container').innerHTML = list.map(p => `
                 <div class="cert-page" style="background-image: url('${certImage}')">
-                    <div class="print-text" style="top:${c.nameTop}%; left:${c.nameLeft}%; font-size:${c.nameSize}px; font-weight:700; font-family:'Libre Baskerville', serif;">${p.name}</div>
-                    <div class="print-text" style="top:${c.wsTop}%; left:${c.wsLeft}%; font-size:${c.wsSize}px; font-weight:700;">${p.workshop} WORKSHOP</div>
-                </div>
-            `).join('');
+                    <div class="print-text" style="top:${c.nameTop}%; left:${c.nameLeft}%; font-size:${c.nameSize}px; font-weight:800; font-family:'Libre Baskerville', serif;">${p.name}</div>
+                    <div class="print-text" style="top:${c.wsTop}%; left:${c.wsLeft}%; font-size:${c.wsSize}px; font-weight:700;">ARDUINO EDUCATION DAY PHILIPPINES 2026</div>
+                </div>`).join('');
         }
     </script>
 </body>
