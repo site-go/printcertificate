@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iTECHLAB | Summer Workshop Terminal v7.3</title>
+    <title>iTECHLAB | Summer Workshop Terminal v7.4</title>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -218,15 +218,14 @@
                 const dataRows = rows.slice(1);
                 
                 const newData = dataRows.map((row, index) => {
-                    // Split while respecting quotes
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     
-                    if (cols && cols.length > 0) {
-                        // THE FIX: Get ONLY Column A (Index 0) which is already constructed by Apps Script
+                    if (cols && cols.length > 13) {
+                        // FIX: Column A (Index 0) = Full Name
                         let fullName = cols[0].replace(/"/g, '').trim();
                         
-                        // Workshop column index (Updated to Index 14 / Column O)
-                        let workshopName = (cols[14] || "Workshop").replace(/"/g, '').trim();
+                        // FIX: Column N (Index 13) = Workshop Topic
+                        let workshopName = (cols[13] || "Workshop").replace(/"/g, '').trim();
 
                         return {
                             id: currentBatch + "_" + index,
