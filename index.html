@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iTECHLAB | Summer Workshop Terminal v7.1</title>
+    <title>iTECHLAB | Summer Workshop Terminal v7.3</title>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -59,7 +59,7 @@
         .btn-action { padding: 12px 24px; border-radius: 50px; border: none; cursor: pointer; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; transition: 0.2s; }
         .btn-print-sm { background: var(--success); color: white; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
 
-        /* --- 📄 PRINT SETTINGS (279.4 x 215.9 mm Landscape) --- */
+        /* --- 📄 PRINT SETTINGS --- */
         #bulk-container { display: none; }
         .cert-page { 
             position: relative; 
@@ -218,17 +218,15 @@
                 const dataRows = rows.slice(1);
                 
                 const newData = dataRows.map((row, index) => {
+                    // Split while respecting quotes
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     
                     if (cols && cols.length > 0) {
+                        // THE FIX: Get ONLY Column A (Index 0) which is already constructed by Apps Script
                         let fullName = cols[0].replace(/"/g, '').trim();
-                        let workshopName = (cols[9] || "Workshop").replace(/"/g, '').trim();
-
-                        // EMERGENCY FIX FOR BATCH 1 NAME SPLIT
-                        if (currentBatch === 'batch1' && cols[1] && isNaN(cols[1].trim())) {
-                            fullName += " " + cols[1].replace(/"/g, '').trim();
-                            workshopName = (cols[10] || "Workshop").replace(/"/g, '').trim();
-                        }
+                        
+                        // Workshop column index (Updated to Index 14 / Column O)
+                        let workshopName = (cols[14] || "Workshop").replace(/"/g, '').trim();
 
                         return {
                             id: currentBatch + "_" + index,
@@ -243,7 +241,10 @@
                 participants = participants.filter(p => p.batch !== currentBatch).concat(newData);
                 render();
                 btn.innerText = "✅ Sync Done";
-            } catch (err) { btn.innerText = "❌ Failed"; }
+            } catch (err) { 
+                btn.innerText = "❌ Failed"; 
+                console.error(err);
+            }
         }
 
         function toggleAll() {
